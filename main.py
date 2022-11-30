@@ -15,10 +15,7 @@ collection = client["redirects"]["redirects"]
 
 def generateLink():
     chars = ascii_letters + digits + "-_"
-    link = ""
-    for _ in range(11):
-        link += chars[random(0, len(chars) - 1)]
-    return link
+    return "".join(chars[random(0, len(chars) - 1)] for _ in range(11))
 
 
 @app.get("/")
@@ -28,20 +25,20 @@ def main():
 
 @app.route("/add-link", methods=['POST'])
 def callback():
-    if request.method == "POST":
-        outlink = request.form.get('link')
-        valid = url(outlink)
-        if not valid:
-            return render_template("invalid.html")
+    if request.method != "POST":
+        return render_template("index.html")
+    outlink = request.form.get('link')
+    valid = url(outlink)
+    if not valid:
+        return render_template("invalid.html")
 
-        inlink = generateLink()
-        collection.insert_one({"inlink": inlink, "outlink": outlink})
+    inlink = generateLink()
+    collection.insert_one({"inlink": inlink, "outlink": outlink})
 
-        base = request.base_url.split("/")
-        base.pop()
-        base = "/".join(base)
-        return render_template("valid.html", link=inlink, domain=base)
-    return render_template("index.html")
+    base = request.base_url.split("/")
+    base.pop()
+    base = "/".join(base)
+    return render_template("valid.html", link=inlink, domain=base)
 
 
 @app.route("/s/<link>")
